@@ -77,7 +77,7 @@ struct VerticalPalettePicker: View {
                                         if currentHistoryIndex < paletteHistory.count - 1 {
                                             paletteHistory.removeLast(paletteHistory.count - currentHistoryIndex - 1)
                     }
-                    paletteHistory.append(selectedColors)
+                    paletteHistory.append(newColors)
                     currentHistoryIndex = paletteHistory.count - 1
                 }) {
                     Text("Generate")
@@ -94,10 +94,12 @@ struct VerticalPalettePicker: View {
                 
                 // Forward arrow
                 Button(action: {
-                    if currentHistoryIndex < paletteHistory.count - 1 {
-                        currentHistoryIndex += 1
-                        selectedColors = paletteHistory[currentHistoryIndex]
-                        updateHexValues()
+                                    if currentHistoryIndex < paletteHistory.count - 1 {
+                                        currentHistoryIndex += 1
+                                        let nextColors = paletteHistory[currentHistoryIndex]
+                                        selectedColors = nextColors  // Apply next colors from history
+                                        updateHexValues()
+
                     }
                 }) {
                     Image(systemName: "arrow.uturn.forward")
@@ -151,30 +153,23 @@ struct VerticalPalettePicker: View {
                 }
             )
         }
-        .onChange(of: shouldUpdateHexValues) { oldValue, newValue in
-                    if newValue {
+        .onChange(of: selectedColors) { oldValue, newValue in
+                    // Only update history when colors change and it's not from navigation
+                    if oldValue != newValue && !paletteHistory.contains(where: { $0 == newValue }) {
                         updateHexValues()
-                        shouldUpdateHexValues = false
+                        if currentHistoryIndex < paletteHistory.count - 1 {
+                            paletteHistory.removeLast(paletteHistory.count - currentHistoryIndex - 1)
+                        }
+                        paletteHistory.append(newValue)
+                        currentHistoryIndex = paletteHistory.count - 1
                     }
                 }
-                .onChange(of: selectedColors) { oldValue, newValue in
+                .onAppear {
+                    if paletteHistory.isEmpty {
+                        paletteHistory.append(selectedColors)
+                        currentHistoryIndex = 0
+                    }
                     updateHexValues()
-                    let colorsCopy = newValue.map { $0 }
-                                if currentHistoryIndex < paletteHistory.count - 1 {
-                                    paletteHistory.removeLast(paletteHistory.count - currentHistoryIndex - 1)
-                                }
-                              //  paletteHistory.append(colorsCopy)
-                               // currentHistoryIndex = paletteHistory.count - 1
-                            
-                }
-
-
-        .onAppear {
-            if paletteHistory.isEmpty {
-                paletteHistory.append(selectedColors)
-                currentHistoryIndex = 0
-            }
-            updateHexValues()
         }
     }
 
