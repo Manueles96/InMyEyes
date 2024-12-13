@@ -30,6 +30,11 @@ struct VerticalPalettePicker: View {
                     selectedColorIndex: $selectedColorIndex,
                     index: index
                 )
+                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("Color \(index + 1): \(hexValues[index])")
+                                .accessibilityHint(lockedColors[index] ? "Color is locked. Double tap to unlock" : "Double tap to edit color")
+                                .accessibilityAddTraits(.isButton)
+
                 .onTapGesture {
                     if !lockedColors[index] {
                         selectedColorIndex = index
@@ -55,6 +60,9 @@ struct VerticalPalettePicker: View {
                         .background(Color.gray.opacity(0.1))
                         .clipShape(Circle())
                 }
+                .accessibilityLabel("Previous palette")
+                                .accessibilityHint("Double tap to go back to previous color palette")
+
                 .disabled(currentHistoryIndex <= 0)
                 
                 // Generate button
@@ -89,6 +97,9 @@ struct VerticalPalettePicker: View {
                         .background(Color.blue)
                         .cornerRadius(30)
                 }
+                .accessibilityLabel("Generate new colors")
+                                .accessibilityHint("Double tap to generate a new color palette")
+
                 
                
                 
@@ -109,6 +120,8 @@ struct VerticalPalettePicker: View {
                         .background(Color.gray.opacity(0.1))
                         .clipShape(Circle())
                 }
+                .accessibilityLabel("Next palette")
+                                .accessibilityHint("Double tap to go to next color palette")
                 .disabled(currentHistoryIndex >= paletteHistory.count - 1)
             }
             .padding()

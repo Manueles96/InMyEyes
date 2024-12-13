@@ -34,9 +34,12 @@ struct ColorBlindnessSimulationView: View {
                                     .foregroundColor(.white)
                                     .bold()
                             )
+                            .accessibilityElement(children: .combine)
+                                                        .accessibilityLabel("Original color \(index + 1): \(hexForColor(palette[index]))")
                     }
                 }
                 .frame(width: UIScreen.main.bounds.width / 2)
+                .accessibilityLabel("Original palette")
                 
                 // Right side simulated colors
                 VStack(spacing: 0) {
@@ -49,9 +52,13 @@ struct ColorBlindnessSimulationView: View {
                                     .foregroundColor(.white)
                                     .bold()
                             )
+                            .accessibilityElement(children: .combine)
+                                                       .accessibilityLabel("Simulated color \(index + 1): \(hexForColor(simulatedColor(palette[index])))")
+
                     }
                 }
                 .frame(width: UIScreen.main.bounds.width / 2)
+                .accessibilityLabel("Simulated palette for \(selectedSimulation)")
                 .id(selectedSimulation)
             }
             
@@ -85,6 +92,9 @@ struct ColorBlindnessSimulationView: View {
                                     .background(Color.gray.opacity(0.1))
                                     .cornerRadius(30)
                                 }
+                .accessibilityLabel("Color blindness type")
+                                .accessibilityHint("Double tap to select color blindness type. Currently selected: \(selectedSimulation)")
+
                 .padding(.horizontal, 60)
                 .padding(.bottom, 20)
                 
@@ -95,6 +105,9 @@ struct ColorBlindnessSimulationView: View {
                             .foregroundColor(.red)
                             .padding()
                     }
+                    .accessibilityLabel("Cancel")
+                                        .accessibilityHint("Double tap to cancel and keep original colors")
+                    
                     Spacer()
                     Button(action: {
                         for i in 0..<palette.count {
@@ -108,6 +121,8 @@ struct ColorBlindnessSimulationView: View {
                             .foregroundColor(.blue)
                             .padding()
                     }
+                    .accessibilityLabel("Apply simulated colors")
+                                        .accessibilityHint("Double tap to apply the simulated color palette")
                 }
             }
             .padding(.horizontal)
