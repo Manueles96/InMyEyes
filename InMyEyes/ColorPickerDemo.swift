@@ -17,6 +17,7 @@ struct VerticalPalettePicker: View {
     @State private var lockedColors: [Bool] = Array(repeating: false, count: 5)
     @State private var paletteHistory: [[Color]] = []
     @State private var currentHistoryIndex: Int = -1
+    @State private var impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,6 +31,7 @@ struct VerticalPalettePicker: View {
                     selectedColorIndex: $selectedColorIndex,
                     index: index
                 )
+                
                 .accessibilityElement(children: .combine)
                                 .accessibilityLabel("Color \(index + 1): \(hexValues[index])")
                                 .accessibilityHint(lockedColors[index] ? "Color is locked. Double tap to unlock" : "Double tap to edit color")
@@ -37,6 +39,7 @@ struct VerticalPalettePicker: View {
 
                 .onTapGesture {
                     if !lockedColors[index] {
+                        impactFeedback.impactOccurred() // Add haptic feedback
                         selectedColorIndex = index
                         showColorPicker = true
                     }
@@ -48,6 +51,7 @@ struct VerticalPalettePicker: View {
                 // Back arrow
                 Button(action: {
                     if currentHistoryIndex > 0 {
+                        impactFeedback.impactOccurred() // Add haptic feedback
                         currentHistoryIndex -= 1
                         selectedColors = paletteHistory[currentHistoryIndex]
                         updateHexValues()
@@ -67,7 +71,8 @@ struct VerticalPalettePicker: View {
                 
                 // Generate button
                 Button(action: {
-                    
+                    impactFeedback.impactOccurred() // Add haptic feedback
+
                                         // Create a new array with random colors
                                         var newColors = selectedColors
                                         for i in 0..<newColors.count where !lockedColors[i] {
@@ -106,6 +111,7 @@ struct VerticalPalettePicker: View {
                 // Forward arrow
                 Button(action: {
                                     if currentHistoryIndex < paletteHistory.count - 1 {
+                                        impactFeedback.impactOccurred()
                                         currentHistoryIndex += 1
                                         let nextColors = paletteHistory[currentHistoryIndex]
                                         selectedColors = nextColors  // Apply next colors from history

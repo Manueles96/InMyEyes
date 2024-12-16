@@ -13,6 +13,7 @@ struct PaletteRowView: View {
     @Binding var lockedColors: [Bool]
     @Binding var showColorPicker: Bool
     @Binding var selectedColorIndex: Int?
+    @State private var impactFeedback = UIImpactFeedbackGenerator(style: .medium)
     let index: Int
 
     var body: some View {
@@ -26,9 +27,13 @@ struct PaletteRowView: View {
                             .foregroundColor(lockedColors[index] ? .black : .white)
                             .bold()
                             .padding(.bottom, 10)
+                            .padding(.leading, 20) // Add left padding
+                                                  //  Spacer() // Push text to the left
+                        
                     },
-                    alignment: .center
+                    alignment: .leading
                 )
+                
 
             VStack {
                 Spacer()
@@ -37,6 +42,7 @@ struct PaletteRowView: View {
 
                     // Lock/Unlock Button
                     Button(action: {
+                        impactFeedback.impactOccurred() // Add haptic feedback
                         lockedColors[index].toggle()
                     }) {
                         Image(systemName: lockedColors[index] ? "lock.fill" : "lock.open")
@@ -48,6 +54,7 @@ struct PaletteRowView: View {
 
                     // Copy Hex Button
                     Button(action: {
+                        impactFeedback.impactOccurred() // Add haptic feedback
                         UIPasteboard.general.string = hexValues[index]  // Copy to clipboard
                     }) {
                         Image(systemName: "doc.on.doc")

@@ -12,6 +12,8 @@ struct ContentView: View {
     @State private var showSimulation = false
     @State private var selectedSimulation = "Protanopia"
     @State private var shouldUpdateHexValues = false
+    @State private var impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+
 
     var body: some View {
         NavigationView {
@@ -30,11 +32,14 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
+                        impactFeedback.impactOccurred() // Add haptic feedback
                         showSimulation = true
                     }) {
                         Image(systemName: "eye")
                             .font(.system(size: 16, weight: .bold))
                     }
+                    .accessibilityLabel("Compare your palette with different type of color blindness")
+                                    .accessibilityHint("Double tap to go to comparison")
                 }
             }
         }
