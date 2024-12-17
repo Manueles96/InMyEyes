@@ -10,166 +10,228 @@ import SwiftUI
 struct ColorBlindnessSimulationView: View {
     @Binding var palette: [Color]
     @Binding var selectedSimulation: String
-    @State private var impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-    let simulations = ["Protanopia", "Deuteranopia", "Tritanopia", "Achromatopsia", "Protanomaly", "Deuteranomaly"]
-    let onApply: () -> Void
-    let onCancel: () -> Void
-    
+    @Binding var showColorPicker: Bool
+    @Binding var selectedColorIndex: Int?
+    @Binding var hexValues: [String]
     
     @Environment(\.colorScheme) private var colorScheme
-    @State private var hexValues: [String] = ["", "", "", "", ""]
+    @State private var impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+    @State private var lockedColors: [Bool] = Array(repeating: false, count: 5)
+    
+    let simulations = ["Protanopia", "Deuteranopia", "Tritanopia", "Achromatopsia", "Protanomaly", "Deuteranomaly"]
     
     var body: some View {
-        VStack(spacing: 0) {
-            
-            // Colors section with adjusted height
-            HStack(spacing: 0) {
-                // Left side colors with label
-                VStack(spacing: 0) {
-                    // Color squares
-                    ForEach(0..<palette.count, id: \.self) { index in
-                        palette[index]
-                            .frame(height: UIScreen.main.bounds.height / 7.5)
-                            .overlay(
-                                Text(hexForColor(palette[index]))
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .bold()
-                            )
-                            .accessibilityElement(children: .combine)
-                            .accessibilityLabel("Original color \(index + 1): \(hexForColor(palette[index]))")
-                    }
-                    
-                    // Label for left palette
-                    Text("Your palette")
-                        .font(.headline)
-                        .foregroundColor(colorScheme == .dark ? .white : .black)
-                        .padding(.top, 8)
-                }
-                .frame(width: UIScreen.main.bounds.width / 2)
-                .accessibilityLabel("Original palette")
+        NavigationView {
+            VStack(spacing: 0) {
                 
-                // Right side colors with label
-                VStack(spacing: 0) {
-                    // Simulated color squares
-                    ForEach(0..<palette.count, id: \.self) { index in
-                        simulatedColor(palette[index])
-                            .frame(height: UIScreen.main.bounds.height / 7.5)
-                            .overlay(
-                                Text(hexForColor(simulatedColor(palette[index])))
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .bold()
-                            )
-                            .accessibilityElement(children: .combine)
-                            .accessibilityLabel("Simulated color \(index + 1): \(hexForColor(simulatedColor(palette[index])))")
-                    }
-                    
-                    // Label for right palette
-                    Text("In other eyes")
-                        .font(.headline)
-                        .foregroundColor(colorScheme == .dark ? .white : .black)
-                        .padding(.top, 8)
-                }
-                .frame(width: UIScreen.main.bounds.width / 2)
-                .accessibilityLabel("Simulated palette for \(selectedSimulation)")
-                .id(selectedSimulation)
-            }
-            
-            Spacer()
-            
-            
-            // Controls section
-            VStack(spacing: 16) {
-                            Menu {
-                                ForEach(simulations, id: \.self) { simulation in
-                                    Button(action: {
-                                        impactFeedback.impactOccurred()
-                                        selectedSimulation = simulation
-                                    }) {
-                                        HStack {
-                                            Text(simulation)
-                                                .font(.headline)
-                                                .foregroundColor(simulation == selectedSimulation ? .blue : .primary)
-                                            
-                                            Spacer()
-                                            
-                                            // Add checkmark for selected simulation
-                                            if simulation == selectedSimulation {
-                                                Image(systemName: "checkmark")
-                                                    .foregroundColor(.blue)
+                // Colors section with palettes
+                HStack(spacing: 0) {
+                    // Left side colors
+                    VStack(spacing: 0) {
+                        Color.clear.frame(height: 30)
+                        // Color squares
+                        ForEach(0..<palette.count, id: \.self) { index in
+                            palette[index]
+                                .frame(height: UIScreen.main.bounds.height / 7)
+                                .overlay(
+                                    HStack {
+                                        Text(hexForColor(palette[index]))
+                                            .font(.subheadline)
+                                            .foregroundColor(lockedColors[index] ? .black : .white)
+                                            .bold()
+                                            .padding(.leading, 10)
+                                        Spacer()
+                                        // Lock and copy buttons
+                                        HStack(spacing: 8) {
+                                            Button(action: {
+                                                impactFeedback.impactOccurred()
+                                                lockedColors[index].toggle()
+                                            }) {
+                                                Image(systemName: lockedColors[index] ? "lock.fill" : "lock.open")
+                                                    .font(.system(size: 14))
+                                                    .foregroundColor(.white)
+                                                    .padding(6)
+                                                    .background(Color.black.opacity(0.3))
+                                                    .clipShape(Circle())
+                                            }
+                                            Button(action: {
+                                                impactFeedback.impactOccurred()
+                                                UIPasteboard.general.string = hexForColor(palette[index])
+                                            }) {
+                                                Image(systemName: "doc.on.doc")
+                                                    .font(.system(size: 14))
+                                                    .foregroundColor(.white)
+                                                    .padding(6)
+                                                    .background(Color.black.opacity(0.3))
+                                                    .clipShape(Circle())
                                             }
                                         }
-                                        .padding(.vertical, 8)
+                                        .padding(.trailing, 10)
+                                    }
+                                )
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if !lockedColors[index] {
+                                        selectedColorIndex = index
+                                        showColorPicker = true
                                     }
                                 }
-
-                } label: {
-                    HStack {
-                        Text(selectedSimulation)
-                            .font(.title3)
-                            .bold()
-                        Image(systemName: "chevron.down")
-                            .font(.title3)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 20)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(30)
-                }
-                .accessibilityLabel("Color blindness type")
-                .accessibilityHint("Double tap to select color blindness type. Currently selected: \(selectedSimulation)")
-
-                .padding(.horizontal, 60)
-                .padding(.bottom, 20)
-                
-                HStack {
-                    Button(action: {
-                        impactFeedback.impactOccurred() // Add haptic feedback
-                        onCancel()
-                    }) {
-                        Text("Cancel")
-                            .font(.headline)
-                            .foregroundColor(.red)
-                            .padding()
-                    }
-                    .accessibilityLabel("Cancel")
-                    .accessibilityHint("Double tap to cancel and keep original colors")
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        impactFeedback.impactOccurred() // Add haptic feedback
-                        // Apply simulated colors
-                        for i in 0..<palette.count {
-                            let simulatedColor = simulatedColor(palette[i])
-                            palette[i] = simulatedColor
                         }
-                        onApply()
-                    }) {
-                        Text("Apply")
-                            .font(.headline)
-                            .foregroundColor(.blue)
-                            .padding()
+                        
+                        Spacer()
+                            
+                        
+                        Button(action: {
+                                                    impactFeedback.impactOccurred()
+                                                    generateRandomColors()
+                                                }) {
+                                                    Text("Generate")
+                                                        .font(.headline)
+                                                        .bold()
+                                                        .foregroundColor(.white)
+                                                        .padding()
+                                                        .frame(maxWidth: .infinity)
+                                                        .frame(height: 44) // Fixed height
+                                                        .background(Color.blue)
+                                                        .cornerRadius(22)
+                                                }
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 12)
+
                     }
-                    .accessibilityLabel("Apply simulated colors")
-                    .accessibilityHint("Double tap to apply the simulated color palette")
-                }
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 0)
-        }
-        
-        .padding(.horizontal)
-        .padding(.bottom, 0)
-        // Use dynamic background color based on color scheme
-        .background(colorScheme == .dark ? Color.black : Color.white)
-        .onAppear {
-            updateHexValues()
-        }
+                    .frame(maxWidth: UIScreen.main.bounds.width / 2, maxHeight: .infinity)
+                    .accessibilityLabel("Original palette")
+                    
+                    // Right side simulated colors
+                    VStack(spacing: 0) {
+                        Color.clear.frame(height: 30)
+                        // Simulated color squares
+                        ForEach(0..<palette.count, id: \.self) { index in
+                            simulatedColor(palette[index])
+                                .frame(height: UIScreen.main.bounds.height / 7)
+                                .overlay(
+                                    HStack {
+                                                                            Text(hexForColor(simulatedColor(palette[index])))
+                                                                                .font(.subheadline)
+                                                                                .foregroundColor(.white)
+                                                                                .bold()
+                                                                                .padding(.leading, 10)
+                                                                            Spacer()
+                                                                            // Add copy button
+                                                                            Button(action: {
+                                                                                impactFeedback.impactOccurred()
+                                                                                UIPasteboard.general.string = hexForColor(simulatedColor(palette[index]))
+                                                                            }) {
+                                                                                Image(systemName: "doc.on.doc")
+                                                                                    .font(.system(size: 14))
+                                                                                    .foregroundColor(.white)
+                                                                                    .padding(6)
+                                                                                    .background(Color.black.opacity(0.3))
+                                                                                    .clipShape(Circle())
+                                                                            }
+                                                                            .padding(.trailing, 10)
+                                                                        }
+                                                                    )
+                                                            }
+
+                        
+                      
+                
+                
+                        Spacer()
+                            
+                        // Simulation picker
+                        Menu {
+                                                    ForEach(simulations, id: \.self) { simulation in
+                                                        Button(action: {
+                                                            impactFeedback.impactOccurred()
+                                                            selectedSimulation = simulation
+                                                        }) {
+                                                            HStack {
+                                                                Text(simulation)
+                                                                    .font(.headline)
+                                                                    .foregroundColor(simulation == selectedSimulation ? .blue : .primary)
+                                                                Spacer()
+                                                                if simulation == selectedSimulation {
+                                                                    Image(systemName: "checkmark")
+                                                                        .foregroundColor(.blue)
+                                                                }
+                                                            }
+                                                            .padding(.vertical, 8)
+                                                        }
+                                                    }
+                                                } label: {
+                                                    HStack {
+                                                        Text(selectedSimulation)
+                                                            .font(.headline)
+                                                            .bold()
+                                                        Image(systemName: "chevron.down")
+                                                    }
+                                                    .frame(maxWidth: .infinity)
+                                                    .frame(height: 44) // Match Generate button height
+                                                    .background(Color.gray.opacity(0.1))
+                                                    .cornerRadius(22)
+                                                }
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 12)
+                                            }
+                    .frame(maxWidth: UIScreen.main.bounds.width / 2, maxHeight: .infinity)
+                                        }
+                                    }
+            .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Text("InMyEyes")
+                                    .font(.largeTitle)
+                                    .bold()
+                                    .padding(.top, 20) // Move title up
+                            }
+                        }
+                        .background(colorScheme == .dark ? Color.black : Color.white)
+
+            // Add color picker sheet
+                        .sheet(isPresented: $showColorPicker) {
+                            ColorPickerView(
+                                title: "",
+                                selectedColor: palette[selectedColorIndex ?? 0],
+                                didSelectColor: { color in
+                                    if let selectedIndex = selectedColorIndex {
+                                        palette[selectedIndex] = color
+                                        hexValues[selectedIndex] = hexForColor(color)
+                                    }
+                                }
+                            )
+                            .overlay(alignment: .topTrailing) {
+                                                Button {
+                                                    impactFeedback.impactOccurred()
+                                                    showColorPicker = false
+                                                } label: {
+                                                    Image(systemName: "xmark.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundColor(.gray)
+                                                        .padding()
+                                                }
+                                            }
+
+                            .presentationDetents([.height(640)])
+                            .presentationDragIndicator(.visible)
+                            .background(colorScheme == .dark ? Color.black : Color.white)
+                        }
+                    }
+
     }
     
+    // Add generateRandomColors function
+    private func generateRandomColors() {
+        for i in 0..<palette.count where !lockedColors[i] {
+            palette[i] = Color(
+                red: Double.random(in: 0...1),
+                green: Double.random(in: 0...1),
+                blue: Double.random(in: 0...1)
+            )
+        }
+        updateHexValues()
+    }
 
     private func updateHexValues() {
         for i in 0..<palette.count {
@@ -259,22 +321,28 @@ struct ColorBlindnessSimulationView: View {
 
     // Convert Color to Hex String (for display)
     func hexForColor(_ color: Color) -> String {
-        let uiColor = UIColor(color)
-        guard let components = uiColor.cgColor.components, components.count >= 3 else {
-            return "#FFFFFF"
+            let uiColor = UIColor(color)
+            var red: CGFloat = 0
+            var green: CGFloat = 0
+            var blue: CGFloat = 0
+            var alpha: CGFloat = 0
+            
+            uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            
+            let r = Int(red * 255)
+            let g = Int(green * 255)
+            let b = Int(blue * 255)
+            
+            return String(format: "#%02X%02X%02X", r, g, b)
         }
-        let red = Int(components[0] * 255)
-        let green = Int(components[1] * 255)
-        let blue = Int(components[2] * 255)
-        return String(format: "#%02X%02X%02X", red, green, blue)
-    }
 }
 
 #Preview {
     ColorBlindnessSimulationView(
         palette: .constant([.red, .green, .blue, .yellow]),
         selectedSimulation: .constant("Protanopia"),
-        onApply: {},
-        onCancel: {}
+        showColorPicker: .constant(false),
+        selectedColorIndex: .constant(nil),
+        hexValues: .constant(["#FF0000", "#00FF00", "#0000FF", "#FFFF00"])
     )
 }
