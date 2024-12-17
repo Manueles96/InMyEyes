@@ -41,7 +41,7 @@ struct ColorBlindnessSimulationView: View {
                     }
                     
                     // Label for left palette
-                    Text("Your Palette")
+                    Text("Your palette")
                         .font(.headline)
                         .foregroundColor(colorScheme == .dark ? .white : .black)
                         .padding(.top, 8)
@@ -66,7 +66,7 @@ struct ColorBlindnessSimulationView: View {
                     }
                     
                     // Label for right palette
-                    Text("Simulation")
+                    Text("In other eyes")
                         .font(.headline)
                         .foregroundColor(colorScheme == .dark ? .white : .black)
                         .padding(.top, 8)
@@ -78,22 +78,32 @@ struct ColorBlindnessSimulationView: View {
             
             Spacer()
             
+            
             // Controls section
             VStack(spacing: 16) {
-                Menu {
-                    ForEach(simulations, id: \.self) { simulation in
-                        Button(action: {
-                            impactFeedback.impactOccurred() // Add haptic feedback
+                            Menu {
+                                ForEach(simulations, id: \.self) { simulation in
+                                    Button(action: {
+                                        impactFeedback.impactOccurred()
+                                        selectedSimulation = simulation
+                                    }) {
+                                        HStack {
+                                            Text(simulation)
+                                                .font(.headline)
+                                                .foregroundColor(simulation == selectedSimulation ? .blue : .primary)
+                                            
+                                            Spacer()
+                                            
+                                            // Add checkmark for selected simulation
+                                            if simulation == selectedSimulation {
+                                                Image(systemName: "checkmark")
+                                                    .foregroundColor(.blue)
+                                            }
+                                        }
+                                        .padding(.vertical, 8)
+                                    }
+                                }
 
-                            selectedSimulation = simulation
-                        }) {
-                            Text(simulation)
-                                .font(.headline)
-                                .foregroundColor(simulation == selectedSimulation ? .blue : .primary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 8)
-                        }
-                    }
                 } label: {
                     HStack {
                         Text(selectedSimulation)
